@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<entry xmlns:atom="http://www.w3.org/2005/Atom" xmlns:gd="http://schemas.google.com/g/2005">
+  <category scheme="http://schemas.google.com/g/2005#kind" term="http://schemas.google.com/contact/2008#contact"/>
+  <gd:name>
+    <gd:givenName>Winsome</gd:givenName>
+    <gd:additionalName>Danger</gd:additionalName>
+    <gd:familyName>Parker</gd:familyName>
+    <gd:fullName>Winsome Danger Parker</gd:fullName>
+  </gd:name>
+  <gd:organization>
+    <gd:orgName>Danger LLP</gd:orgName>
+    <gd:orgTitle>President</gd:orgTitle>
+  </gd:organization>
+  <gd:email label="home" address="winnie@example.net"/>
+  <gd:email label="work" address="winsome.parker@example.com"/>
+  <gd:phoneNumber label="home">(619) 555-1212</gd:phoneNumber>
+  <gd:phoneNumber label="work">(206) 555-1111</gd:phoneNumber>
+  <gd:structuredPostalAddress label="work">
+    <gd:agent>c/o John Parker</gd:agent>
+    <gd:street>941 W Hawthorn St</gd:street>
+    <gd:city>San Diego</gd:city>
+    <gd:region>CA</gd:region>
+    <gd:postcode>92101</gd:postcode>
+    <gd:country>USA</gd:country>
+  </gd:structuredPostalAddress>
+</entry>
