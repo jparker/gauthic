@@ -22,5 +22,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'nokogiri', '~>1.4.0'
   s.add_development_dependency 'rspec', '~>2.5.0'
   s.add_development_dependency 'webmock', '~>1.6.0'
-  s.add_development_dependency 'mocha'
+  s.add_development_dependency 'mocha', '~>0.9.12'
+  s.add_development_dependency 'equivalent-xml', '~>0.2.6'
 end

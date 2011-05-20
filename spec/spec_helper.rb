@@ -18,4 +18,6 @@ end
 
 require 'webmock/rspec'
 require 'mocha'
+require 'equivalent-xml/rspec_matchers'
+
 require 'gauthic'

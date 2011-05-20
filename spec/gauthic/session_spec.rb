@@ -222,6 +222,12 @@ describe Gauthic::Session do
       it 'returns the HTTPResponse' do
         @session.delete('https://www.google.com/m8/feeds/contacts/example.com/full').should be_kind_of(Net::HTTPResponse)
       end
+
+      it 'includes additional headers with request if passed as arguments' do
+        @session.delete('https://www.google.com/m8/feeds/contacts/example.com/full', :headers => {'If-Match' => '*'})
+        WebMock.should have_requested(:delete, 'https://www.google.com/m8/feeds/contacts/example.com/full').
+          with(:headers => {'If-Match' => '*'})
+      end
     end
   end
 end

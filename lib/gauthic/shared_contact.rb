@@ -2,6 +2,12 @@ require 'ostruct'
 
 module Gauthic
   class SharedContact
+    class RecordNotFound < StandardError
+    end
+
+    class RecordNotSaved < StandardError
+    end
+
     def self.connect!(email, password)
       @session = Gauthic::Session.new(email, password, 'cp')
     end
@@ -15,20 +21,65 @@ module Gauthic
       @session
     end
 
+    def id
+      tag = document.at_xpath('//xmlns:link[@rel="self"]')
+      tag.attribute('href').value unless tag.nil?
+    end
+
+    def new_record?
+      id.nil?
+    end
+
+    def self.find(id)
+      result = session.get(id)
+      if Net::HTTPSuccess === result
+        new(result.body)
+      else
+        raise RecordNotFound, result.body
+      end
+    end
+
+    def save
+      if new_record?
+        url = "https://www.google.com/m8/feeds/contacts/#{session.domain}/full"
+        result = session.post(url, :headers => {'Content-Type' => 'application/atom+xml'}, :body => to_xml)
+      else
+        url = document.at_xpath('//xmlns:link[@rel="edit"]').attribute('href').value
+        result = session.put(url, :headers => {'Content-Type' => 'application/atom+xml'}, :body => to_xml)
+      end
+      if Net::HTTPSuccess === result
+        return true
+      else
+        raise RecordNotSaved, result.body
+      end
+    end
+
+    def destroy
+      url = document.at_xpath('//xmlns:link[@rel="edit"]').attribute('href').value
+      result = session.delete(url, :headers => {'If-Match' => '*'})
+      if Net::HTTPSuccess === result
+        return true
+      else
+        raise RecordNotSaved, result.body
+      end
+    end
+
     def initialize(attrs_or_xml=nil)
       if attrs_or_xml.is_a?(Hash)
-        self.document = default_document.doc
+        self.document = default_document
         attrs_or_xml.each do |key, value|
           send("#{key}=", value)
         end
       else
         self.document = Nokogiri.XML(attrs_or_xml)
+        self.document = default_document if document.root.nil?
       end
     end
 
     def to_xml
       document.to_xml
     end
+    alias to_s to_xml
 
     def session
       self.class.session
@@ -147,11 +198,11 @@ module Gauthic
 
     def default_document
       Nokogiri::XML::Builder.new do |builder|
-        builder.entry('xmlns:atom' => 'http://www.w3.org/2005/Atom', 'xmlns:gd' => schema) do
-          # builder.document.root.namespace = find_namespace(builder.document, 'atom')
-          builder['atom'].category('scheme' => schema('#kind'), 'term' => schema('/contact/2008#contact'))
+        builder.entry('xmlns' => 'http://www.w3.org/2005/Atom', 'xmlns:gd' => schema) do
+          # builder.doc.root.namespace = find_namespace(builder.doc, 'atom')
+          builder.category('scheme' => schema('#kind'), 'term' => schema('/contact/2008#contact'))
         end
-      end
+      end.doc
     end
 
     def find_namespace(document, prefix)
@@ -159,7 +210,7 @@ module Gauthic
     end
 
     def schema(suffix=nil)
-      'http://schema.google.com' + (suffix.nil? ? '/g/2005' : (suffix =~ /^#/ ? "/g/2005#{suffix}" : suffix))
+      'http://schemas.google.com' + (suffix.nil? ? '/g/2005' : (suffix =~ /^#/ ? "/g/2005#{suffix}" : suffix))
     end
   end
 end

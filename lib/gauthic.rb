@@ -2,9 +2,11 @@ require 'nokogiri'
 require 'net/https'
 
 module Gauthic
+  # TODO: move to Gauthic::Session namespace
   class AuthenticationError < StandardError
   end
 
+  # TODO: move to Gauthic::Session namespace
   class NoActiveSession < StandardError
   end
 end

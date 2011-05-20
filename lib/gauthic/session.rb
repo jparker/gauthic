@@ -62,10 +62,11 @@ module Gauthic
 
     # Issues a DELETE request for +uri+. Wraps Net::HTTP::Delete adding the required
     # Authorization and GData-Version headers.
-    def delete(uri)
+    def delete(uri, options={})
       uri = URI.parse(uri)
       request = Net::HTTP::Delete.new(uri.path)
       add_gdata_headers!(request)
+      apply_options!(request, options)
       send_request(uri, request)
     end
 
