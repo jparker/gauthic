@@ -17,7 +17,7 @@ module Gauthic
     end
 
     def self.session
-      raise NoActiveSession, 'start new session by calling connect!' unless defined?(@session)
+      raise Gauthic::Session::NoActiveSession, 'start new session by calling connect!' unless defined?(@session)
       @session
     end
 
@@ -35,7 +35,7 @@ module Gauthic
       if Net::HTTPSuccess === result
         new(result.body)
       else
-        raise RecordNotFound, result.body
+        raise Gauthic::SharedContact::RecordNotFound, result.body
       end
     end
 
@@ -50,7 +50,7 @@ module Gauthic
       if Net::HTTPSuccess === result
         return true
       else
-        raise RecordNotSaved, result.body
+        raise Gauthic::SharedContact::RecordNotSaved, result.body
       end
     end
 
@@ -60,7 +60,7 @@ module Gauthic
       if Net::HTTPSuccess === result
         return true
       else
-        raise RecordNotSaved, result.body
+        raise Gauthic::SharedContact::RecordNotSaved, result.body
       end
     end
 

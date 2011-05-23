@@ -27,7 +27,7 @@ describe Gauthic::SharedContact do
     it 'raises NoActiveSession if a session has not been established' do
       Gauthic::SharedContact.disconnect!
       expect { Gauthic::SharedContact.session }.
-        to raise_error(Gauthic::NoActiveSession, /start new session by calling connect!/)
+        to raise_error(Gauthic::Session::NoActiveSession, /start new session by calling connect!/)
     end
   end
 

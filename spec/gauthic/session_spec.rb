@@ -27,7 +27,7 @@ describe Gauthic::Session do
 
     it 'raises AuthenticationError' do
       expect { Gauthic::Session.new('john@example.com', 'secret', 'cp') }.
-        to raise_error(Gauthic::AuthenticationError, /Error=BadAuthentication/)
+        to raise_error(Gauthic::Session::AuthenticationError, /Error=BadAuthentication/)
     end
   end
 

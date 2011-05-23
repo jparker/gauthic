@@ -5,6 +5,12 @@ module Gauthic
   # This is handled automatically when using the #get, #post, #put and #delete
   # methods.
   class Session
+    class AuthenticationError < StandardError
+    end
+
+    class NoActiveSession < StandardError
+    end
+
     attr_accessor :token, :domain
 
     # Initiates a new Shared Contacts API session. +email+ and +password+ are the
@@ -27,7 +33,7 @@ module Gauthic
         self.token = result.body.match(/\bAuth=(.*)\b/)[1]
         self.domain = email.split('@').last
       else
-        raise AuthenticationError, result.body
+        raise Gauthic::Session::AuthenticationError, result.body
       end
     end
 
