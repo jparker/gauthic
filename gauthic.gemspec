@@ -20,6 +20,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_runtime_dependency 'nokogiri', '~>1.4.0'
+  s.add_development_dependency 'rake', '~>0.8.7'
   s.add_development_dependency 'rspec', '~>2.5.0'
   s.add_development_dependency 'webmock', '~>1.6.0'
   s.add_development_dependency 'mocha', '~>0.9.12'
