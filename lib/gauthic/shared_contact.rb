@@ -54,6 +54,13 @@ module Gauthic
       end
     end
 
+    def update_attributes(attributes = {})
+      attributes.each do |key, value|
+        send("#{key}=", value)
+      end
+      save
+    end
+
     def destroy
       url = document.at_xpath('//xmlns:link[@rel="edit"]').attribute('href').value
       result = session.delete(url, :headers => {'If-Match' => '*'})

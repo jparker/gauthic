@@ -6,11 +6,11 @@ Gem::Specification.new do |s|
   s.name        = "gauthic"
   s.version     = Gauthic::VERSION
   s.platform    = Gem::Platform::RUBY
-  s.authors     = ["TODO: Write your name"]
-  s.email       = ["TODO: Write your email address"]
-  s.homepage    = ""
-  s.summary     = %q{TODO: Write a gem summary}
-  s.description = %q{TODO: Write a gem description}
+  s.authors     = ["John Parker"]
+  s.email       = ["jparker@urgetopunt.com"]
+  s.homepage    = "https://github.com/jparker/gauthic"
+  s.summary     = %q{Ruby interface to Google GData APIs}
+  s.description = %q{Ruby interface to Google GData APIs such as Shared Contacts, etc.}
 
   s.rubyforge_project = "gauthic"
 

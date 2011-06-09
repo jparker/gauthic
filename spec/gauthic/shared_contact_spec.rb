@@ -180,6 +180,22 @@ describe Gauthic::SharedContact do
     end
   end
 
+  describe '#update_attributes' do
+    it 'updates contact with given attribute values' do
+      contact = Gauthic::SharedContact.new
+      contact.expects(:save).returns(true)
+      contact.update_attributes(:name => {:givenName => 'John', :familyName => 'Parker'},
+                                 :email => [{:label => 'work', :address => 'jparker@urgetopunt.com'}],
+                                 :organization => {:orgName => 'Urgetopunt Technologies LLC', :orgTitle => 'Owner'})
+      contact.name.givenName.should == 'John'
+      contact.name.familyName.should == 'Parker'
+      contact.email.first.label.should == 'work'
+      contact.email.first.address.should == 'jparker@urgetopunt.com'
+      contact.organization.orgName.should == 'Urgetopunt Technologies LLC'
+      contact.organization.orgTitle.should == 'Owner'
+    end
+  end
+
   describe '#destroy' do
     before do
       stub_request(:post, 'https://www.google.com/accounts/ClientLogin').
