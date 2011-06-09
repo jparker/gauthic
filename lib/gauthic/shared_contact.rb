@@ -1,5 +1,3 @@
-require 'ostruct'
-
 module Gauthic
   class SharedContact
     class RecordNotFound < StandardError
@@ -8,17 +6,92 @@ module Gauthic
     class RecordNotSaved < StandardError
     end
 
-    def self.connect!(email, password)
-      @session = Gauthic::Session.new(email, password, 'cp')
+    class AbstractNode
+      def initialize(root, attributes = {})
+        self.root = root
+        attributes.each { |attr, value| send("#{attr}=", value) }
+      end
+
+      class << self
+        private
+        def def_attributes(*attributes)
+          attributes.each do |attribute|
+            def_attribute(attribute)
+          end
+        end
+
+        def def_attribute(attribute)
+          class_eval <<-END, __FILE__, __LINE__
+            def #{attribute}
+              get(:#{attribute})
+            end
+
+            def #{attribute}=(value)
+              set(:#{attribute}, value)
+            end
+          END
+        end
+      end
+
+      private
+      attr_accessor :root
+
+      def get(attribute)
+        node = root.at_xpath(".//gd:#{attribute}")
+        node.content if node
+      end
+
+      def set(attribute, value)
+        node = root.at_xpath(".//gd:#{attribute}")
+        if node.nil?
+          node = Nokogiri::XML::Node.new(attribute.to_s, root)
+          node.namespace = root.namespace
+          root << node
+        end
+        node.content = value
+      end
     end
 
-    def self.disconnect!
-      remove_instance_variable :@session
+    class Name < AbstractNode
+      def_attributes :namePrefix, :givenName, :additionalName, :familyName, :nameSuffix
     end
 
-    def self.session
-      raise Gauthic::Session::NoActiveSession, 'start new session by calling connect!' unless defined?(@session)
-      @session
+    class Organization < AbstractNode
+      def_attributes :orgName, :orgDepartment, :orgTitle
+    end
+
+    class Address < AbstractNode
+      def_attributes :agent, :housename, :street, :pobox, :neighborhood, :city, :region, :postcode, :country
+      def label()         root['label'] end
+      def label=(value)   root['label'] = value end
+    end
+
+    class Email < AbstractNode
+      def label()         root['label'] end
+      def label=(value)   root['label'] = value end
+      def address()       root['address'] end
+      def address=(value) root['address'] = value end
+    end
+
+    class Phone < AbstractNode
+      def label()         root['label'] end
+      def label=(value)   root['label'] = value end
+      def number()        root.content end
+      def number=(value)  root.content = value end
+    end
+
+    attr_accessor :document
+
+    def initialize(attrs_or_xml=nil)
+      if attrs_or_xml.is_a?(Hash)
+        self.document = default_document
+        attrs_or_xml.each do |key, value|
+          send("#{key}=", value)
+        end
+      else
+        self.document = Nokogiri.XML(attrs_or_xml)
+        self.document = default_document if document.root.nil?
+      end
     end
 
     def id
@@ -28,15 +101,6 @@ module Gauthic
 
     def new_record?
       id.nil?
-    end
-
-    def self.find(id)
-      result = session.get(id)
-      if Net::HTTPSuccess === result
-        new(result.body)
-      else
-        raise Gauthic::SharedContact::RecordNotFound, result.body
-      end
     end
 
     def save
@@ -71,22 +135,32 @@ module Gauthic
       end
     end
 
-    def initialize(attrs_or_xml=nil)
-      if attrs_or_xml.is_a?(Hash)
-        self.document = default_document
-        attrs_or_xml.each do |key, value|
-          send("#{key}=", value)
-        end
-      else
-        self.document = Nokogiri.XML(attrs_or_xml)
-        self.document = default_document if document.root.nil?
-      end
-    end
-
     def to_xml
       document.to_xml
     end
     alias to_s to_xml
+
+    def self.connect!(email, password)
+      @session = Gauthic::Session.new(email, password, 'cp')
+    end
+
+    def self.disconnect!
+      remove_instance_variable :@session
+    end
+
+    def self.session
+      raise Gauthic::Session::NoActiveSession, 'start new session by calling connect!' unless defined?(@session)
+      @session
+    end
+
+    def self.find(id)
+      result = session.get(id)
+      if Net::HTTPSuccess === result
+        new(result.body)
+      else
+        raise Gauthic::SharedContact::RecordNotFound, result.body
+      end
+    end
 
     def session
       self.class.session
@@ -94,125 +168,81 @@ module Gauthic
 
     def name
       node = document.at_xpath('//gd:name')
-      OpenStruct.new(node.element_children.inject({}) {|hsh, el| hsh[el.name] = el.content; hsh})
+      if node.nil?
+        node = Nokogiri::XML::Node.new('name', document)
+        node.namespace = namespace('gd')
+        document.root << node
+      end
+      Name.new(node)
     end
 
-    def name=(attributes)
-      namespace = find_namespace(document, 'gd')
-      parent = document.at_xpath('//gd:name')
-      if parent.nil?
-        parent = Nokogiri::XML::Node.new('name', document)
-        parent.namespace = namespace
-        document.root << parent
-      else
-        parent.children.remove
-      end
-
-      attributes.each do |key, value|
-        node = Nokogiri::XML::Node.new(key.to_s, parent)
-        node.namespace = namespace
-        node.content = value
-        parent << node
-      end
+    def name=(parts)
+      parts.each { |attr, value| name.send("#{attr}=", value) }
     end
 
     def organization
       node = document.at_xpath('//gd:organization')
-      OpenStruct.new(node.element_children.inject({}) {|hsh, el| hsh[el.name] = el.content; hsh})
+      if node.nil?
+        node = Nokogiri::XML::Node.new('organization', document)
+        node.namespace = namespace('gd')
+        document.root << node
+      end
+      Organization.new(node)
     end
 
-    def organization=(attributes)
-      namespace = find_namespace(document, 'gd')
-      parent = document.at_xpath('//gd:organization')
-      if parent.nil?
-        parent = Nokogiri::XML::Node.new('organization', document)
-        parent.namespace = namespace
-        document.root << parent
-      else
-        parent.children.remove
-      end
-
-      attributes.each do |key, value|
-        node = Nokogiri::XML::Node.new(key.to_s, parent)
-        node.namespace = namespace
-        node.content = value
-        parent << node
-      end
+    def organization=(parts)
+      parts.each { |attr, value| organization.send("#{attr}=", value) }
     end
 
-    def address
-      addresses = document.xpath('//gd:structuredPostalAddress')
-      addresses.map do |node|
-        kids = node.element_children.inject({}) {|hsh, el| hsh[el.name] = el.content; hsh}
-        OpenStruct.new(kids.merge(:label => node['label']))
+    def addresses
+      document.xpath('//gd:structuredPostalAddress').map { |node| Address.new(node) }
+    end
+
+    def addresses=(addresses)
+      addresses.map do |parts|
+        node = Nokogiri::XML::Node.new('structuredPostalAddress', document)
+        node.namespace = namespace('gd')
+        document.root << node
+        Address.new(node, parts)
       end
     end
 
-    def address=(addresses)
-      namespace = find_namespace(document, 'gd')
-      document.xpath('//gd:structuredPostalAddress').remove
-      addresses.each do |address|
-        parent = Nokogiri::XML::Node.new('structuredPostalAddress', document)
-        parent.namespace = namespace
-        parent['label'] = address.delete(:label)
-        document.root << parent
-
-        address.each do |key, value|
-          node = Nokogiri::XML::Node.new(key.to_s, parent)
-          node.namespace = namespace
-          node.content = value
-          parent << node
-        end
-      end
+    def emails
+      document.xpath('//gd:email').map { |node| Email.new(node) }
     end
 
-    def email
-      nodes = document.xpath('//gd:email')
-      nodes.map {|node| OpenStruct.new(:label => node['label'], :address => node['address'])}
-    end
-
-    def email=(addresses)
-      namespace = find_namespace(document, 'gd')
-      document.xpath('//gd:email').remove
-      addresses.each do |email|
+    def emails=(addresses)
+      addresses.map do |parts|
         node = Nokogiri::XML::Node.new('email', document)
-        node.namespace = namespace
-        node['label'] = email[:label]
-        node['address'] = email[:address]
+        node.namespace = namespace('gd')
         document.root << node
+        Email.new(node, parts)
       end
     end
 
-    def phone
-      nodes = document.xpath('//gd:phoneNumber')
-      nodes.map {|node| OpenStruct.new(:label => node['label'], :number => node.content)}
+    def phones
+      document.xpath('//gd:phoneNumber').map { |node| Phone.new(node) }
     end
 
-    def phone=(numbers)
-      namespace = find_namespace(document, 'gd')
-      document.xpath('//gd:phoneNumber').remove
-      numbers.each do |phone|
+    def phones=(numbers)
+      numbers.map do |parts|
         node = Nokogiri::XML::Node.new('phoneNumber', document)
-        node.namespace = namespace
-        node['label'] = phone[:label]
-        node.content = phone[:number]
+        node.namespace = namespace('gd')
         document.root << node
+        Phone.new(node, parts)
       end
     end
 
     private
-    attr_accessor :document
-
     def default_document
       Nokogiri::XML::Builder.new do |builder|
         builder.entry('xmlns' => 'http://www.w3.org/2005/Atom', 'xmlns:gd' => schema) do
-          # builder.doc.root.namespace = find_namespace(builder.doc, 'atom')
           builder.category('scheme' => schema('#kind'), 'term' => schema('/contact/2008#contact'))
         end
       end.doc
     end
 
-    def find_namespace(document, prefix)
+    def namespace(prefix)
       document.root.namespace_definitions.detect {|ns| ns.prefix == prefix}
     end
 

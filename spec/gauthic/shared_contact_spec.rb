@@ -103,9 +103,9 @@ describe Gauthic::SharedContact do
       XML
       contact = Gauthic::SharedContact.new(
         :name => {:givenName => 'Winsome', :additionalName => 'Danger', :familyName => 'Parker'},
-        :email => [{:label => 'work', :address => 'winsome.danger@example.com'}, {:label => 'home', :address => 'winnie@example.net'}],
-         :phone => [{:label => 'work', :number => '(206) 555-1234'}, {:label => 'home', :number => '(619) 555-1212'}],
-        :address => [
+        :emails => [{:label => 'work', :address => 'winsome.danger@example.com'}, {:label => 'home', :address => 'winnie@example.net'}],
+        :phones => [{:label => 'work', :number => '(206) 555-1234'}, {:label => 'home', :number => '(619) 555-1212'}],
+        :addresses => [
           {:label => 'work', :agent => 'c/o John Parker', :street => '2400 Elliott Ave', :city => 'Seattle', :region => 'WA', :postcode => '98121', :country => 'USA'},
           {:label => 'home', :street => '941 W Hawthorn St', :city => 'San Diego', :region => 'CA', :postcode => '92101', :country => 'USA'}
         ]
@@ -185,12 +185,12 @@ describe Gauthic::SharedContact do
       contact = Gauthic::SharedContact.new
       contact.expects(:save).returns(true)
       contact.update_attributes(:name => {:givenName => 'John', :familyName => 'Parker'},
-                                 :email => [{:label => 'work', :address => 'jparker@urgetopunt.com'}],
+                                 :emails => [{:label => 'work', :address => 'jparker@urgetopunt.com'}],
                                  :organization => {:orgName => 'Urgetopunt Technologies LLC', :orgTitle => 'Owner'})
       contact.name.givenName.should == 'John'
       contact.name.familyName.should == 'Parker'
-      contact.email.first.label.should == 'work'
-      contact.email.first.address.should == 'jparker@urgetopunt.com'
+      contact.emails.first.label.should == 'work'
+      contact.emails.first.address.should == 'jparker@urgetopunt.com'
       contact.organization.orgName.should == 'Urgetopunt Technologies LLC'
       contact.organization.orgTitle.should == 'Owner'
     end
@@ -213,56 +213,171 @@ describe Gauthic::SharedContact do
     end
   end
 
+  describe 'name' do
+    it 'assigns prefixes' do
+      contact = Gauthic::SharedContact.new
+      contact.name.namePrefix = 'Rt. Hon.'
+      contact.document.at_xpath('//gd:name/gd:namePrefix').content.should == 'Rt. Hon.'
+    end
+
+    it 'assigns given names' do
+      contact = Gauthic::SharedContact.new
+      contact.name.givenName = 'Winsome'
+      contact.document.at_xpath('//gd:name/gd:givenName').content.should == 'Winsome'
+    end
+
+    it 'assigns middle names' do
+      contact = Gauthic::SharedContact.new
+      contact.name.additionalName = 'Danger'
+      contact.document.at_xpath('//gd:name/gd:additionalName').content.should == 'Danger'
+    end
+
+    it 'assigns family names' do
+      contact = Gauthic::SharedContact.new
+      contact.name.familyName = 'Parker'
+      contact.document.at_xpath('//gd:name/gd:familyName').content.should == 'Parker'
+    end
+
+    it 'assigns suffixes' do
+      contact = Gauthic::SharedContact.new
+      contact.name.nameSuffix = 'Esq.'
+      contact.document.at_xpath('//gd:name/gd:nameSuffix').content.should == 'Esq.'
+    end
+  end
+
+  describe 'organization' do
+    it 'assigns organization name' do
+      contact = Gauthic::SharedContact.new
+      contact.organization.orgName = 'Urgetopunt Technologies LLC'
+      contact.document.at_xpath('//gd:organization/gd:orgName').content.should == 'Urgetopunt Technologies LLC'
+    end
+
+    it 'assigns department name' do
+      contact = Gauthic::SharedContact.new
+      contact.organization.orgDepartment = 'Operations'
+      contact.document.at_xpath('//gd:organization/gd:orgDepartment').content.should == 'Operations'
+    end
+
+    it 'assigns job title' do
+      contact = Gauthic::SharedContact.new
+      contact.organization.orgTitle = 'Owner'
+      contact.document.at_xpath('//gd:organization/gd:orgTitle').content.should == 'Owner'
+    end
+  end
+
+  describe 'addresses' do
+    it 'assigns label' do
+      contact = Gauthic::SharedContact.new(:addresses => [{:label => 'other'}])
+      contact.addresses.first.label = 'home'
+      contact.document.at_xpath('//gd:structuredPostalAddress')['label'].should == 'home'
+    end
+
+    it 'assigns agent' do
+      contact = Gauthic::SharedContact.new(:addresses => [{:label => 'other'}])
+      contact.addresses.first.street = 'c/o John Parker'
+      contact.document.at_xpath('//gd:structuredPostalAddress/gd:street').content.should == 'c/o John Parker'
+    end
+
+    it 'assigns street' do
+      contact = Gauthic::SharedContact.new(:addresses => [{:label => 'other'}])
+      contact.addresses.first.street = '941 W Hawthorn St'
+      contact.document.at_xpath('//gd:structuredPostalAddress/gd:street').content.should == '941 W Hawthorn St'
+    end
+
+    it 'assigns city' do
+      contact = Gauthic::SharedContact.new(:addresses => [{:label => 'other'}])
+      contact.addresses.first.city = 'San Diego'
+      contact.document.at_xpath('//gd:structuredPostalAddress/gd:city').content.should == 'San Diego'
+    end
+
+    it 'assigns region' do
+      contact = Gauthic::SharedContact.new(:addresses => [{:label => 'other'}])
+      contact.addresses.first.region = 'CA'
+      contact.document.at_xpath('//gd:structuredPostalAddress/gd:region').content.should == 'CA'
+    end
+
+    it 'assigns postcode' do
+      contact = Gauthic::SharedContact.new(:addresses => [{:label => 'other'}])
+      contact.addresses.first.postcode = '92101'
+      contact.document.at_xpath('//gd:structuredPostalAddress/gd:postcode').content.should == '92101'
+    end
+
+    it 'assigns country' do
+      contact = Gauthic::SharedContact.new(:addresses => [{:label => 'other'}])
+      contact.addresses.first.country = 'USA'
+      contact.document.at_xpath('//gd:structuredPostalAddress/gd:country').content.should == 'USA'
+    end
+  end
+
+  describe 'emails' do
+    it 'assigns label' do
+      contact = Gauthic::SharedContact.new(:emails => [{:label => 'other'}])
+      contact.emails.first.label = 'work'
+      contact.document.at_xpath('//gd:email')['label'].should == 'work'
+    end
+
+    it 'assigns address' do
+      contact = Gauthic::SharedContact.new(:emails => [{:label => 'other'}])
+      contact.emails.first.address = 'jparker@urgetopunt.com'
+      contact.document.at_xpath('//gd:email')['address'].should == 'jparker@urgetopunt.com'
+    end
+  end
+
+  describe 'phones' do
+    it 'assigns label' do
+      contact = Gauthic::SharedContact.new(:phones => [{:label => 'other'}])
+      contact.phones.first.label = 'work'
+      contact.document.at_xpath('//gd:phoneNumber')['label'].should == 'work'
+    end
+
+    it 'assigns number' do
+      contact = Gauthic::SharedContact.new(:phones => [{:label => 'other'}])
+      contact.phones.first.number = '619-555-1212'
+      contact.document.at_xpath('//gd:phoneNumber').content.should == '619-555-1212'
+    end
+  end
+
   describe 'initialization with an attribute hash' do
-    it 'assigns name attributes' do
+    it 'assigns name' do
       contact = Gauthic::SharedContact.new(:name => {:givenName=>'Winsome', :additionalName=>'Danger', :familyName=>'Parker'})
-      doc = Nokogiri.XML(contact.to_xml)
-      doc.at_xpath('//gd:name/gd:givenName').content.should == 'Winsome'
-      doc.at_xpath('//gd:name/gd:additionalName').content.should == 'Danger'
-      doc.at_xpath('//gd:name/gd:familyName').content.should == 'Parker'
+      contact.name.givenName.should == 'Winsome'
+      contact.name.additionalName.should == 'Danger'
+      contact.name.familyName.should == 'Parker'
     end
 
-    it 'assigns organization attributes' do
-      contact = Gauthic::SharedContact.new(:organization => {:orgName=>'Danger LLP', :orgTitle=>'President'})
-      doc = Nokogiri.XML(contact.to_xml)
-      doc.at_xpath('//gd:organization/gd:orgName').content.should == 'Danger LLP'
-      doc.at_xpath('//gd:organization/gd:orgTitle').content.should == 'President'
+    it 'assigns organization' do
+      contact = Gauthic::SharedContact.new(:organization => {:orgName=>'Urgetopunt Technologies LLC', :orgTitle=>'Owner'})
+      contact.organization.orgName.should == 'Urgetopunt Technologies LLC'
+      contact.organization.orgTitle.should == 'Owner'
     end
 
-    it 'assigns postal address attributes' do
-      contact = Gauthic::SharedContact.new(:address => [{:label=>'work', :agent=>'c/o John Parker', :street=>'941 W Hawthorn St', :city=>'San Diego', :region=>'CA', :postcode=>'92101', :country=>'USA'}])
-      doc = Nokogiri.XML(contact.to_xml)
-      node = doc.at_xpath('//gd:structuredPostalAddress')
-
-      node.attribute('label').value.should == 'work'
-      node.at_xpath('//gd:agent').content.should == 'c/o John Parker'
-      node.at_xpath('//gd:street').content.should == '941 W Hawthorn St'
-      node.at_xpath('//gd:city').content.should == 'San Diego'
-      node.at_xpath('//gd:region').content.should == 'CA'
-      node.at_xpath('//gd:postcode').content.should == '92101'
-      node.at_xpath('//gd:country').content.should == 'USA'
+    it 'assigns postal address' do
+      contact = Gauthic::SharedContact.new(:addresses => [{:label=>'work', :agent=>'c/o John Parker', :street=>'941 W Hawthorn St', :city=>'San Diego', :region=>'CA', :postcode=>'92101', :country=>'USA'}])
+      contact.addresses.first.label.should == 'work'
+      contact.addresses.first.agent.should == 'c/o John Parker'
+      contact.addresses.first.street.should == '941 W Hawthorn St'
+      contact.addresses.first.city.should == 'San Diego'
+      contact.addresses.first.region.should == 'CA'
+      contact.addresses.first.postcode.should == '92101'
+      contact.addresses.first.country.should == 'USA'
     end
 
-    it 'assigns email address attributes' do
-      contact = Gauthic::SharedContact.new(:email => [{:label=>'home', :address=>'winnie@example.net'},
-                                                      {:label=>'work', :address=>'winsome.parker@example.com'}])
-      doc = Nokogiri.XML(contact.to_xml)
-      nodes = doc.xpath('//gd:email')
-      nodes.first.attribute('label').value.should == 'home'
-      nodes.first.attribute('address').value.should == 'winnie@example.net'
-      nodes.last.attribute('label').value.should == 'work'
-      nodes.last.attribute('address').value.should == 'winsome.parker@example.com'
+    it 'assigns email address' do
+      contact = Gauthic::SharedContact.new(:emails => [{:label=>'home', :address=>'john.c.parker@gmail.com'},
+                                                       {:label=>'work', :address=>'jparker@urgetopunt.com'}])
+      contact.emails.first.label.should == 'home'
+      contact.emails.first.address.should == 'john.c.parker@gmail.com'
+      contact.emails.last.label.should == 'work'
+      contact.emails.last.address.should == 'jparker@urgetopunt.com'
     end
 
     it 'assigns phone number attributes' do
-      contact = Gauthic::SharedContact.new(:phone => [{:label=>'home', :number=>'619-555-1212'},
-                                                      {:label=>'work', :number=>'206-555-1111'}])
-      doc = Nokogiri.XML(contact.to_xml)
-      nodes = doc.xpath('//gd:phoneNumber')
-      nodes.first.attribute('label').value.should == 'home'
-      nodes.first.content.should == '619-555-1212'
-      nodes.last.attribute('label').value.should == 'work'
-      nodes.last.content.should == '206-555-1111'
+      contact = Gauthic::SharedContact.new(:phones => [{:label=>'home', :number=>'619-555-1212'},
+                                                       {:label=>'work', :number=>'206-555-1111'}])
+      contact.phones.first.label.should == 'home'
+      contact.phones.first.number.should == '619-555-1212'
+      contact.phones.last.label.should == 'work'
+      contact.phones.last.number.should == '206-555-1111'
     end
   end
 
@@ -283,27 +398,27 @@ describe Gauthic::SharedContact do
     end
 
     it 'parses XML for email addresses' do
-      @contact.email.first.label.should == 'home'
-      @contact.email.first.address.should == 'winnie@example.net'
-      @contact.email.last.label.should == 'work'
-      @contact.email.last.address.should == 'winsome.parker@example.com'
+      @contact.emails.first.label.should == 'home'
+      @contact.emails.first.address.should == 'winnie@example.net'
+      @contact.emails.last.label.should == 'work'
+      @contact.emails.last.address.should == 'winsome.parker@example.com'
     end
 
     it 'parses XML for phone numbers' do
-      @contact.phone.first.label.should == 'home'
-      @contact.phone.first.number.should == '(619) 555-1212'
-      @contact.phone.last.label.should == 'work'
-      @contact.phone.last.number.should == '(206) 555-1111'
+      @contact.phones.first.label.should == 'home'
+      @contact.phones.first.number.should == '(619) 555-1212'
+      @contact.phones.last.label.should == 'work'
+      @contact.phones.last.number.should == '(206) 555-1111'
     end
 
     it 'parses XML for postal addresses' do
-      @contact.address.first.label.should == 'work'
-      @contact.address.first.agent.should == 'c/o John Parker'
-      @contact.address.first.street.should == '941 W Hawthorn St'
-      @contact.address.first.city.should == 'San Diego'
-      @contact.address.first.region.should == 'CA'
-      @contact.address.first.postcode.should == '92101'
-      @contact.address.first.country.should == 'USA'
+      @contact.addresses.first.label.should == 'work'
+      @contact.addresses.first.agent.should == 'c/o John Parker'
+      @contact.addresses.first.street.should == '941 W Hawthorn St'
+      @contact.addresses.first.city.should == 'San Diego'
+      @contact.addresses.first.region.should == 'CA'
+      @contact.addresses.first.postcode.should == '92101'
+      @contact.addresses.first.country.should == 'USA'
     end
   end
 
