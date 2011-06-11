@@ -23,11 +23,18 @@ module Gauthic
         def def_attribute(attribute)
           class_eval <<-END, __FILE__, __LINE__
             def #{attribute}
-              get(:#{attribute})
+              node = root.at_xpath(".//gd:#{attribute}")
+              node.content if node
             end
 
             def #{attribute}=(value)
-              set(:#{attribute}, value)
+              node = root.at_xpath(".//gd:#{attribute}")
+              if node.nil?
+                node = Nokogiri::XML::Node.new('#{attribute}', root)
+                node.namespace = root.namespace
+                root << node
+              end
+              node.content = value
             end
           END
         end
@@ -35,21 +42,6 @@ module Gauthic
 
       private
       attr_accessor :root
-
-      def get(attribute)
-        node = root.at_xpath(".//gd:#{attribute}")
-        node.content if node
-      end
-
-      def set(attribute, value)
-        node = root.at_xpath(".//gd:#{attribute}")
-        if node.nil?
-          node = Nokogiri::XML::Node.new(attribute.to_s, root)
-          node.namespace = root.namespace
-          root << node
-        end
-        node.content = value
-      end
     end
 
     class Name < AbstractNode
