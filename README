@@ -1,15 +1,49 @@
 Gauthic provides a Ruby interface to Google's Data APIs. This initial release
 has very limited functionality aimed at a specific need I have in an existing
-client application.
+application.
 
 The library only supports the Shared Contacts API at present because this is my
 most pressing need. Read about the Shared Contacts API here:
 
 http://code.google.com/googleapps/domain/shared_contacts/gdata_shared_contacts_api_reference.html
 
-Authorization is done via ClientLogin. It is my understanding that Oauth is
+Authorization is done via ClientLogin. It is my understanding that OAuth is
 preferred to ClientLogin, but it was not immediately obvious to me how to get
 OAuth working in a detached environment such as is found in a cron job. Read
 more about Google Data authorization here:
 
 http://code.google.com/apis/gdata/docs/auth/overview.html
+
+=== SHARED CONTACT API USAGE ===
+
+Before performing any actions, you must connect to the GData service to activate
+a session. At present this is done via ClientLogin. The credentials must be for a
+user with administrative privileges.
+
+  Gauthic::SharedContact.connect!('admin@example.com', 'secret')
+
+Gauthic::SharedContact exposes an interface similar to that of ActiveRecord.
+
+  contact = Gauthic::SharedContact.new(
+    name: {givenName: 'Winsome', familyName: 'Parker'},
+    organization: {orgName: 'Urgetopunt Technologies LLC', orgTitle: 'Chief Dog Officer'},
+    addresses: [{street: '123 Broadway', city: 'San Diego', region: 'CA', postcode: '92101', country: 'USA'}],
+    emails: [{label: 'work', address: 'winsome.danger@example.com'}, {label: 'home', address: 'winnie@example.net'}],
+    phones: [{label: 'work', number: '(619) 555-1212'}, {label: 'mobile', number: '619-555-1213'}]
+  )
+  contact.name.additionalName = 'Danger'
+  contact.new_record? # => true
+  contact.id          # => nil
+  contact.save
+  contact.new_record? # => false
+  contact.id          # => "https://www.google.com/m8/feeds/contacts/example.com/full/12345"
+
+  contact = Gauthic::SharedContact.find('https://www.google.com/m8/feeds/contacts/example.com/full/12345')
+  contact.update_attributes(name: {namePrefix: 'Ms.'}, organization: {orgTitle: 'Chief Pug'})
+
+  contact = Gauthic::SharedContact.find('https://www.google.com/m8/feeds/contacts/example.com/full/12345')
+  contact.destroy
+
+=== COMPATIBILITY ===
+
+This library has been developed and tested against Ruby 1.9.2p180 and Ruby Enterprise Edition 1.8.7-2011.03.
