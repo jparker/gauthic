@@ -20,7 +20,6 @@ describe Gauthic::Session do
 
   describe 'unsuccessful authentication' do
     before do
-      response = "Error=BadAuthentication\n"
       stub_request(:post, 'https://www.google.com/accounts/ClientLogin').
         to_return(:body => "Error=BadAuthentication\n", :status => 403)
     end
@@ -78,155 +77,101 @@ describe Gauthic::Session do
       stub_request(:post, 'https://www.google.com/accounts/ClientLogin').
         to_return(:body => fixture('successful_authentication.txt'), :status => 200)
       @session = Gauthic::Session.new('john@example.com', 'secret', 'cp')
+      @session.stubs(:token).returns('my-awesome-token')
     end
 
     describe '#get' do
       before do
-        stub_request(:get, 'https://www.google.com/m8/feeds/contacts/example.com/full').
+        stub_request(:get, 'https://www.google.com/foo').
           to_return(:body => 'Hello, nurse!', :status => 200)
       end
 
-      it 'performs a GET request for the given uri' do
-        @session.get('https://www.google.com/m8/feeds/contacts/example.com/full')
-        WebMock.should have_requested(:get, 'https://www.google.com/m8/feeds/contacts/example.com/full')
-      end
-
-      it 'includes an Authorization header with the request' do
-        @session.stubs(:token).returns('my-awesome-token')
-        @session.get('https://www.google.com/m8/feeds/contacts/example.com/full')
-        WebMock.should have_requested(:get, 'https://www.google.com/m8/feeds/contacts/example.com/full').
-          with(:headers => {'Authorization' => 'GoogleLogin auth=my-awesome-token'})
-      end
-
-      it 'includes a GData-Version header with the request' do
-        @session.get('https://www.google.com/m8/feeds/contacts/example.com/full')
-        WebMock.should have_requested(:get, 'https://www.google.com/m8/feeds/contacts/example.com/full').
-          with(:headers => {'GData-Version' => '3.0'})
+      it 'performs a GET request to the given uri with authorization and gdata-version headers' do
+        @session.get('https://www.google.com/foo')
+        WebMock.should have_requested(:get, 'https://www.google.com/foo').
+          with(:headers => {'Authorization' => 'GoogleLogin auth=my-awesome-token', 'GData-Version' => '3.0'})
       end
 
       it 'returns the HTTPResponse' do
-        @session.get('https://www.google.com/m8/feeds/contacts/example.com/full').should be_kind_of(Net::HTTPResponse)
+        @session.get('https://www.google.com/foo').should be_kind_of(Net::HTTPResponse)
       end
     end
 
     describe '#post' do
       before do
-        stub_request(:post, 'https://www.google.com/m8/feeds/contacts/example.com/full').
+        stub_request(:post, 'https://www.google.com/foo').
           to_return(:body => 'Hello, nurse!', :status => 200)
       end
 
-      it 'performs a POST request for the given uri' do
-        @session.post('https://www.google.com/m8/feeds/contacts/example.com/full')
-        WebMock.should have_requested(:post, 'https://www.google.com/m8/feeds/contacts/example.com/full')
-      end
-
-      it 'includes an Authorization header with the request' do
-        @session.stubs(:token).returns('my-awesome-token')
-        @session.post('https://www.google.com/m8/feeds/contacts/example.com/full')
-        WebMock.should have_requested(:post, 'https://www.google.com/m8/feeds/contacts/example.com/full').
-          with(:headers => {'Authorization' => 'GoogleLogin auth=my-awesome-token'})
-      end
-
-      it 'includes a GData-Version header with the request' do
-        @session.post('https://www.google.com/m8/feeds/contacts/example.com/full')
-        WebMock.should have_requested(:post, 'https://www.google.com/m8/feeds/contacts/example.com/full').
-          with(:headers => {'GData-Version' => '3.0'})
+      it 'performs a POST request to the given uri with authorization and gdata-version headers' do
+        @session.post('https://www.google.com/foo')
+        WebMock.should have_requested(:post, 'https://www.google.com/foo').
+          with(:headers => {'Authorization' => 'GoogleLogin auth=my-awesome-token', 'GData-Version' => '3.0'})
       end
 
       it 'returns the HTTPResponse' do
-        @session.post('https://www.google.com/m8/feeds/contacts/example.com/full').should be_kind_of(Net::HTTPResponse)
+        @session.post('https://www.google.com/foo').should be_kind_of(Net::HTTPResponse)
       end
 
       it 'includes additional headers with request if passed as arguments' do
-        @session.post('https://www.google.com/m8/feeds/contacts/example.com/full',
-          :headers => {'Content-Type' => 'application/atom+xml'})
-        WebMock.should have_requested(:post, 'https://www.google.com/m8/feeds/contacts/example.com/full').
+        @session.post('https://www.google.com/foo', :headers => {'Content-Type' => 'application/atom+xml'})
+        WebMock.should have_requested(:post, 'https://www.google.com/foo').
           with(:headers => {'Content-Type' => 'application/atom+xml'})
       end
 
       it 'includes request body if passed as argument' do
-        @session.post('https://www.google.com/m8/feeds/contacts/example.com/full',
-          :body => 'Hello, nurse!')
-        WebMock.should have_requested(:post, 'https://www.google.com/m8/feeds/contacts/example.com/full').
-          with(:body => 'Hello, nurse!')
+        @session.post('https://www.google.com/foo', :body => 'Hello, nurse!')
+        WebMock.should have_requested(:post, 'https://www.google.com/foo').with(:body => 'Hello, nurse!')
       end
     end
 
     describe '#put' do
       before do
-        stub_request(:put, 'https://www.google.com/m8/feeds/contacts/example.com/full').
+        stub_request(:put, 'https://www.google.com/foo').
           to_return(:body => 'Hello, nurse!', :status => 200)
       end
 
-      it 'performs a PUT request for the given uri' do
-        @session.put('https://www.google.com/m8/feeds/contacts/example.com/full')
-        WebMock.should have_requested(:put, 'https://www.google.com/m8/feeds/contacts/example.com/full')
-      end
-
-      it 'includes an Authorization header with the request' do
-        @session.stubs(:token).returns('my-awesome-token')
-        @session.put('https://www.google.com/m8/feeds/contacts/example.com/full')
-        WebMock.should have_requested(:put, 'https://www.google.com/m8/feeds/contacts/example.com/full').
-          with(:headers => {'Authorization' => 'GoogleLogin auth=my-awesome-token'})
-      end
-
-      it 'includes a GData-Version header with the request' do
-        @session.put('https://www.google.com/m8/feeds/contacts/example.com/full')
-        WebMock.should have_requested(:put, 'https://www.google.com/m8/feeds/contacts/example.com/full').
-          with(:headers => {'GData-Version' => '3.0'})
+      it 'performs a PUT request to the given uri with authorization and gdata-version headers' do
+        @session.put('https://www.google.com/foo')
+        WebMock.should have_requested(:put, 'https://www.google.com/foo').
+          with(:headers => {'Authorization' => 'GoogleLogin auth=my-awesome-token', 'GData-Version' => '3.0'})
       end
 
       it 'returns the HTTPResponse' do
-        @session.put('https://www.google.com/m8/feeds/contacts/example.com/full').should be_kind_of(Net::HTTPResponse)
+        @session.put('https://www.google.com/foo').should be_kind_of(Net::HTTPResponse)
       end
 
       it 'includes additional headers with request if passed as arguments' do
-        @session.put('https://www.google.com/m8/feeds/contacts/example.com/full',
-          :headers => {'Content-Type' => 'application/atom+xml'})
-        WebMock.should have_requested(:put, 'https://www.google.com/m8/feeds/contacts/example.com/full').
+        @session.put('https://www.google.com/foo', :headers => {'Content-Type' => 'application/atom+xml'})
+        WebMock.should have_requested(:put, 'https://www.google.com/foo').
           with(:headers => {'Content-Type' => 'application/atom+xml'})
       end
 
       it 'includes request body if passed as argument' do
-        @session.put('https://www.google.com/m8/feeds/contacts/example.com/full',
-          :body => 'Hello, nurse!')
-        WebMock.should have_requested(:put, 'https://www.google.com/m8/feeds/contacts/example.com/full').
-          with(:body => 'Hello, nurse!')
+        @session.put('https://www.google.com/foo', :body => 'Hello, nurse!')
+        WebMock.should have_requested(:put, 'https://www.google.com/foo').with(:body => 'Hello, nurse!')
       end
     end
 
     describe '#delete' do
       before do
-        stub_request(:delete, 'https://www.google.com/m8/feeds/contacts/example.com/full').
+        stub_request(:delete, 'https://www.google.com/foo').
           to_return(:body => 'Hello, nurse!', :status => 200)
       end
 
-      it 'performs a DELETE request for the given uri' do
-        @session.delete('https://www.google.com/m8/feeds/contacts/example.com/full')
-        WebMock.should have_requested(:delete, 'https://www.google.com/m8/feeds/contacts/example.com/full')
-      end
-
-      it 'includes an Authorization header with the request' do
-        @session.stubs(:token).returns('my-awesome-token')
-        @session.delete('https://www.google.com/m8/feeds/contacts/example.com/full')
-        WebMock.should have_requested(:delete, 'https://www.google.com/m8/feeds/contacts/example.com/full').
-          with(:headers => {'Authorization' => 'GoogleLogin auth=my-awesome-token'})
-      end
-
-      it 'includes a GData-Version header with the request' do
-        @session.delete('https://www.google.com/m8/feeds/contacts/example.com/full')
-        WebMock.should have_requested(:delete, 'https://www.google.com/m8/feeds/contacts/example.com/full').
-          with(:headers => {'GData-Version' => '3.0'})
+      it 'performs a DELETE request to the given uri with authorization and gdata-version headers' do
+        @session.delete('https://www.google.com/foo')
+        WebMock.should have_requested(:delete, 'https://www.google.com/foo').
+          with(:headers => {'Authorization' => 'GoogleLogin auth=my-awesome-token', 'GData-Version' => '3.0'})
       end
 
       it 'returns the HTTPResponse' do
-        @session.delete('https://www.google.com/m8/feeds/contacts/example.com/full').should be_kind_of(Net::HTTPResponse)
+        @session.delete('https://www.google.com/foo').should be_kind_of(Net::HTTPResponse)
       end
 
       it 'includes additional headers with request if passed as arguments' do
-        @session.delete('https://www.google.com/m8/feeds/contacts/example.com/full', :headers => {'If-Match' => '*'})
-        WebMock.should have_requested(:delete, 'https://www.google.com/m8/feeds/contacts/example.com/full').
-          with(:headers => {'If-Match' => '*'})
+        @session.delete('https://www.google.com/foo', :headers => {'If-Match' => '*'})
+        WebMock.should have_requested(:delete, 'https://www.google.com/foo').with(:headers => {'If-Match' => '*'})
       end
     end
   end
