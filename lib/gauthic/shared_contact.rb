@@ -162,6 +162,7 @@ module Gauthic
     end
 
     def name=(parts)
+      document.xpath('//gd:name').remove
       parts.each { |attr, value| name.send("#{attr}=", value) }
     end
 
@@ -176,6 +177,7 @@ module Gauthic
     end
 
     def organization=(parts)
+      document.xpath('//gd:organization').remove
       parts.each { |attr, value| organization.send("#{attr}=", value) }
     end
 

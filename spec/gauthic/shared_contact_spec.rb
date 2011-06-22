@@ -260,6 +260,14 @@ describe Gauthic::SharedContact do
       contact.name.nameSuffix = 'Esq.'
       contact.document.at_xpath('//gd:name/gd:nameSuffix').content.should == 'Esq.'
     end
+
+    it 'resets all fields on bulk assignment' do
+      contact = Gauthic::SharedContact.new(:name => {:givenName => 'Winsome', :additionalName => 'Danger', :familyName => 'Parker'})
+      contact.name = {:givenName => 'Winnie', :familyName => 'Parker'}
+      contact.document.at_xpath('//gd:name/gd:givenName').content.should == 'Winnie'
+      contact.document.at_xpath('//gd:name/gd:additionalName').should be_nil
+      contact.document.at_xpath('//gd:name/gd:familyName').content.should == 'Parker'
+    end
   end
 
   describe 'organization proxy' do
@@ -279,6 +287,13 @@ describe Gauthic::SharedContact do
       contact = Gauthic::SharedContact.new
       contact.organization.orgTitle = 'Owner'
       contact.document.at_xpath('//gd:organization/gd:orgTitle').content.should == 'Owner'
+    end
+
+    it 'resets all fields on bulk assignment' do
+      contact = Gauthic::SharedContact.new(:organization => {:orgName => 'Urgetopunt Technologies', :orgTitle => 'Owner'})
+      contact.organization = {:orgName => 'Urgetopunt Technologies LLC'}
+      contact.document.at_xpath('//gd:organization/gd:orgName').content.should == 'Urgetopunt Technologies LLC'
+      contact.document.at_xpath('//gd:organization/gd:orgTitle').should be_nil
     end
   end
 
