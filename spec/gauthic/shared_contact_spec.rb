@@ -324,6 +324,12 @@ describe Gauthic::SharedContact do
       contact.addresses.first.country = 'USA'
       contact.document.at_xpath('//gd:structuredPostalAddress/gd:country').content.should == 'USA'
     end
+
+    it 'clears the existing addresses on bulk assignment' do
+      contact = Gauthic::SharedContact.new(:addresses => [{:label => 'home', :country => 'USA'}])
+      contact.addresses = [{:label => 'work', :country => 'United States'}]
+      contact.addresses.map(&:country).should == ['United States']
+    end
   end
 
   describe 'emails proxy' do
@@ -338,6 +344,13 @@ describe Gauthic::SharedContact do
       contact.emails.first.address = 'jparker@urgetopunt.com'
       contact.document.at_xpath('//gd:email')['address'].should == 'jparker@urgetopunt.com'
     end
+
+    it 'clears the existing addresses on bulk assignment' do
+      contact = Gauthic::SharedContact.new(:emails => [{:label => 'work', :address => 'jparker@urgetopunt.com'},
+                                                       {:label => 'home', :address => 'john@urgetopunt.org'}])
+      contact.emails = [{:label => 'home', :address => 'john.c.parker@gmail.com'}]
+      contact.emails.map(&:address).should == ['john.c.parker@gmail.com']
+    end
   end
 
   describe 'phones proxy' do
@@ -351,6 +364,13 @@ describe Gauthic::SharedContact do
       contact = Gauthic::SharedContact.new(:phones => [{:label => 'other'}])
       contact.phones.first.number = '619-555-1212'
       contact.document.at_xpath('//gd:phoneNumber').content.should == '619-555-1212'
+    end
+
+    it 'clears the existing numbers on bulk assignment' do
+      contact = Gauthic::SharedContact.new(:phones => [{:label => 'home', :number => '555-1212'},
+                                                       {:label => 'work', :number => '555-1213'}])
+      contact.phones = [{:label => 'home', :number => '555-1234'}]
+      contact.phones.map(&:number).should == ['555-1234']
     end
   end
 

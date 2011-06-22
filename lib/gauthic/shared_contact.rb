@@ -184,6 +184,7 @@ module Gauthic
     end
 
     def addresses=(addresses)
+      document.xpath('//gd:structuredPostalAddress').remove
       addresses.map do |parts|
         node = Nokogiri::XML::Node.new('structuredPostalAddress', document)
         node.namespace = namespace('gd')
@@ -197,6 +198,7 @@ module Gauthic
     end
 
     def emails=(addresses)
+      document.xpath('//gd:email').remove
       addresses.map do |parts|
         node = Nokogiri::XML::Node.new('email', document)
         node.namespace = namespace('gd')
@@ -210,6 +212,7 @@ module Gauthic
     end
 
     def phones=(numbers)
+      document.xpath('//gd:phoneNumber').remove
       numbers.map do |parts|
         node = Nokogiri::XML::Node.new('phoneNumber', document)
         node.namespace = namespace('gd')
