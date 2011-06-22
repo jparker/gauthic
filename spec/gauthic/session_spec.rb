@@ -95,6 +95,12 @@ describe Gauthic::Session do
       it 'returns the HTTPResponse' do
         @session.get('https://www.google.com/foo').should be_kind_of(Net::HTTPResponse)
       end
+
+      it 'includes additional headers with request if passed as arguments' do
+        @session.get('https://www.google.com/foo', :headers => {'X-Foo' => 'wozziegoggle'})
+        WebMock.should have_requested(:get, 'https://www.google.com/foo').
+          with(:headers => {'X-Foo' => 'wozziegoggle'})
+      end
     end
 
     describe '#post' do

@@ -37,63 +37,61 @@ module Gauthic
       end
     end
 
-    # Issues a GET request for +uri+. Wraps Net::HTTP::Get adding the required
-    # Authorization and GData-Version headers.
-    def get(uri)
+    # Issues a GET request for +uri+.
+    def get(uri, options={})
       uri = URI.parse(uri)
       request = Net::HTTP::Get.new(uri.path)
-      add_gdata_headers!(request)
-      send_request(uri, request)
+      gdata_headers!(request)
+      send_request(uri, request, options)
     end
 
-    # Issues a POST request for +uri+. Wraps Net::HTTP::Post adding the required
-    # Authorization and GData-Version headers.
+    # Issues a POST request for +uri+.
     def post(uri, options={})
       uri = URI.parse(uri)
       request = Net::HTTP::Post.new(uri.path)
-      add_gdata_headers!(request)
-      apply_options!(request, options)
-      send_request(uri, request)
+      gdata_headers!(request)
+      send_request(uri, request, options)
     end
 
-    # Issues a PUT request for +uri+. Wraps Net::HTTP::Put adding the required
-    # Authorization and GData-Version headers.
+    # Issues a PUT request for +uri+.
     def put(uri, options={})
       uri = URI.parse(uri)
       request = Net::HTTP::Put.new(uri.path)
-      add_gdata_headers!(request)
-      apply_options!(request, options)
-      send_request(uri, request)
+      gdata_headers!(request)
+      send_request(uri, request, options)
     end
 
-    # Issues a DELETE request for +uri+. Wraps Net::HTTP::Delete adding the required
-    # Authorization and GData-Version headers.
+    # Issues a DELETE request for +uri+.
     def delete(uri, options={})
       uri = URI.parse(uri)
       request = Net::HTTP::Delete.new(uri.path)
-      add_gdata_headers!(request)
-      apply_options!(request, options)
-      send_request(uri, request)
+      gdata_headers!(request)
+      send_request(uri, request, options)
     end
 
     private
-    def send_request(uri, request)
+    def send_request(uri, request, options={})
       http = Net::HTTP.new(uri.host, uri.port)
       http.use_ssl = true
       http.verify_mode = OpenSSL::SSL::VERIFY_PEER
+      headers!(request, options[:headers])
+      body!(request, options[:body])
       http.request(request)
     end
 
-    def add_gdata_headers!(request)
+    def gdata_headers!(request)
       request.add_field('Authorization', "GoogleLogin auth=#{token}")
       request.add_field('GData-Version', '3.0')
     end
 
-    def apply_options!(request, options)
-      options[:headers].each do |key, value|
+    def headers!(request, headers)
+      headers.each do |key, value|
         request.add_field(key, value)
-      end if options[:headers]
-      request.body = options[:body] if options[:body]
+      end if headers
+    end
+
+    def body!(request, body)
+      request.body = body if body
     end
   end
 end
