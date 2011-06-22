@@ -90,7 +90,7 @@ describe Gauthic::SharedContact do
     end
   end
 
-  describe '#to_xml' do
+  describe '#xml' do
     it 'returns a well-formatted xml document' do
       expected_xml = <<-XML
 <?xml version="1.0"?>
@@ -137,7 +137,21 @@ describe Gauthic::SharedContact do
         {:label => 'work', :street => '2400 Elliott Ave', :city => 'Seattle', :region => 'WA', :postcode => '98121'},
         {:label => 'home', :street => '941 W Hawthorn St', :city => 'San Diego', :region => 'CA', :postcode => '92101'}
       ]
-      contact.to_xml.should be_equivalent_to(expected_xml)
+      contact.xml.should be_equivalent_to(expected_xml)
+    end
+  end
+
+  describe '#to_xml' do
+    it 'delegates to #xml' do
+      contact = Gauthic::SharedContact.new(fixture('contact.xml'))
+      contact.to_xml.should == contact.xml
+    end
+  end
+
+  describe '#to_s' do
+    it 'delegates to #xml' do
+      contact = Gauthic::SharedContact.new(fixture('contact.xml'))
+      contact.to_s.should == contact.xml
     end
   end
 
@@ -156,7 +170,7 @@ describe Gauthic::SharedContact do
 
       it 'submits POST request as XML document to domain contact feed' do
         contact = Gauthic::SharedContact.new
-        contact.stubs(:to_xml).returns('xml')
+        contact.stubs(:xml).returns('xml')
         contact.save.should be_true
         WebMock.should have_requested(:post, 'https://www.google.com/m8/feeds/contacts/example.com/full').
           with(:body => 'xml', :headers => {'Content-Type' => 'application/atom+xml'})
@@ -175,7 +189,7 @@ describe Gauthic::SharedContact do
         stub_request(:put, 'https://www.google.com/m8/feeds/contacts/example.com/full/12345/1204224422303000').
           to_return(:body => fixture('contact.xml'), :status => 201)
         contact = Gauthic::SharedContact.new(fixture('contact.xml'))
-        contact.stubs(:to_xml).returns('xml')
+        contact.stubs(:xml).returns('xml')
         contact.save.should be_true
         WebMock.should have_requested(:put, 'https://www.google.com/m8/feeds/contacts/example.com/full/12345/1204224422303000').
           with(:body => 'xml', :headers => {'Content-Type' => 'application/atom+xml'})
@@ -447,7 +461,7 @@ describe Gauthic::SharedContact do
 </entry>
       XML
       contact = Gauthic::SharedContact.new('<?xml version="1.0"?>')
-      contact.to_xml.should be_equivalent_to(expected_xml)
+      contact.xml.should be_equivalent_to(expected_xml)
     end
   end
 end

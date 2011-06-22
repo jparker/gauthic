@@ -119,10 +119,11 @@ module Gauthic
       end
     end
 
-    def to_xml
+    def xml
       document.to_xml
     end
-    alias to_s to_xml
+    alias to_xml xml
+    alias to_s xml
 
     def self.connect!(email, password)
       @session = Gauthic::Session.new(email, password, 'cp')
@@ -236,7 +237,7 @@ module Gauthic
 
     def create_new_record(debug=false)
       url = "https://www.google.com/m8/feeds/contacts/#{session.domain}/full"
-      result = session.post(url, :headers => {'Content-Type' => 'application/atom+xml'}, :body => to_xml)
+      result = session.post(url, :headers => {'Content-Type' => 'application/atom+xml'}, :body => xml)
       if Net::HTTPSuccess === result
         self.xml = result.body
         return debug ? result.body : true
@@ -247,7 +248,7 @@ module Gauthic
 
     def update_existing_record(debug=false)
       url = document.at_xpath('//xmlns:link[@rel="edit"]').attribute('href').value
-      result = session.put(url, :headers => {'Content-Type' => 'application/atom+xml'}, :body => to_xml)
+      result = session.put(url, :headers => {'Content-Type' => 'application/atom+xml'}, :body => xml)
       if Net::HTTPSuccess === result
         self.xml = result.body
         return debug ? result.body : true
