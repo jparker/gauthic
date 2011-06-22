@@ -81,8 +81,7 @@ module Gauthic
           send("#{key}=", value)
         end
       else
-        self.document = Nokogiri.XML(attrs_or_xml)
-        self.document = default_document if document.root.nil?
+        self.xml = attrs_or_xml
       end
     end
 
@@ -95,18 +94,11 @@ module Gauthic
       id.nil?
     end
 
-    def save
+    def save(debug=false)
       if new_record?
-        url = "https://www.google.com/m8/feeds/contacts/#{session.domain}/full"
-        result = session.post(url, :headers => {'Content-Type' => 'application/atom+xml'}, :body => to_xml)
+        create_new_record(debug)
       else
-        url = document.at_xpath('//xmlns:link[@rel="edit"]').attribute('href').value
-        result = session.put(url, :headers => {'Content-Type' => 'application/atom+xml'}, :body => to_xml)
-      end
-      if Net::HTTPSuccess === result
-        return true
-      else
-        raise Gauthic::SharedContact::RecordNotSaved, result.body
+        update_existing_record(debug)
       end
     end
 
@@ -240,6 +232,33 @@ module Gauthic
 
     def schema(suffix=nil)
       'http://schemas.google.com' + (suffix.nil? ? '/g/2005' : (suffix =~ /^#/ ? "/g/2005#{suffix}" : suffix))
+    end
+
+    def create_new_record(debug=false)
+      url = "https://www.google.com/m8/feeds/contacts/#{session.domain}/full"
+      result = session.post(url, :headers => {'Content-Type' => 'application/atom+xml'}, :body => to_xml)
+      if Net::HTTPSuccess === result
+        self.xml = result.body
+        return debug ? result.body : true
+      else
+        raise Gauthic::SharedContact::RecordNotSaved, result.body
+      end
+    end
+
+    def update_existing_record(debug=false)
+      url = document.at_xpath('//xmlns:link[@rel="edit"]').attribute('href').value
+      result = session.put(url, :headers => {'Content-Type' => 'application/atom+xml'}, :body => to_xml)
+      if Net::HTTPSuccess === result
+        self.xml = result.body
+        return debug ? result.body : true
+      else
+        raise Gauthic::SharedContact::RecordNotSaved, result.body
+      end
+    end
+
+    def xml=(xml)
+      self.document = Nokogiri.XML(xml)
+      self.document = default_document if document.root.nil?
     end
   end
 end

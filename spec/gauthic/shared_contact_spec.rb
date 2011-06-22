@@ -149,14 +149,23 @@ describe Gauthic::SharedContact do
     end
 
     describe 'when contact is a new record' do
-      it 'submits POST request as XML document to domain contact feed' do
+      before do
         stub_request(:post, 'https://www.google.com/m8/feeds/contacts/example.com/full').
           to_return(:body => fixture('contact.xml'), :status => 201)
+      end
+
+      it 'submits POST request as XML document to domain contact feed' do
         contact = Gauthic::SharedContact.new
         contact.stubs(:to_xml).returns('xml')
         contact.save.should be_true
         WebMock.should have_requested(:post, 'https://www.google.com/m8/feeds/contacts/example.com/full').
           with(:body => 'xml', :headers => {'Content-Type' => 'application/atom+xml'})
+      end
+
+      it 'updates the contact with the new feed url' do
+        contact = Gauthic::SharedContact.new
+        contact.save
+        contact.id.should == 'https://www.google.com/m8/feeds/contacts/example.com/full/12345'
       end
     end
 
