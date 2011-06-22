@@ -162,10 +162,11 @@ describe Gauthic::SharedContact do
           with(:body => 'xml', :headers => {'Content-Type' => 'application/atom+xml'})
       end
 
-      it 'updates the contact with the new feed url' do
+      it 'updates the contact with the xml returned by google' do
         contact = Gauthic::SharedContact.new
         contact.save
         contact.id.should == 'https://www.google.com/m8/feeds/contacts/example.com/full/12345'
+        contact.document.at_xpath('//xmlns:link[@rel="edit"]').should_not be_nil
       end
     end
 
