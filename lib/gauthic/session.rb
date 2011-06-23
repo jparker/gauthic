@@ -41,32 +41,28 @@ module Gauthic
     def get(uri, options={})
       uri = URI.parse(uri)
       request = Net::HTTP::Get.new(uri.path)
-      gdata_headers!(request)
-      send_request(uri, request, options)
+      send_authorized_request(uri, request, options)
     end
 
     # Issues a POST request for +uri+.
     def post(uri, options={})
       uri = URI.parse(uri)
       request = Net::HTTP::Post.new(uri.path)
-      gdata_headers!(request)
-      send_request(uri, request, options)
+      send_authorized_request(uri, request, options)
     end
 
     # Issues a PUT request for +uri+.
     def put(uri, options={})
       uri = URI.parse(uri)
       request = Net::HTTP::Put.new(uri.path)
-      gdata_headers!(request)
-      send_request(uri, request, options)
+      send_authorized_request(uri, request, options)
     end
 
     # Issues a DELETE request for +uri+.
     def delete(uri, options={})
       uri = URI.parse(uri)
       request = Net::HTTP::Delete.new(uri.path)
-      gdata_headers!(request)
-      send_request(uri, request, options)
+      send_authorized_request(uri, request, options)
     end
 
     private
@@ -79,9 +75,10 @@ module Gauthic
       http.request(request)
     end
 
-    def gdata_headers!(request)
+    def send_authorized_request(uri, request, options={})
       request.add_field('Authorization', "GoogleLogin auth=#{token}")
       request.add_field('GData-Version', '3.0')
+      send_request(uri, request, options)
     end
 
     def headers!(request, headers)
