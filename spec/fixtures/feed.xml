@@ -1,0 +1,79 @@
+<feed xmlns='http://www.w3.org/2005/Atom'
+    xmlns:openSearch='http://a9.com/-/spec/opensearchrss/1.0/'
+    xmlns:gd='http://schemas.google.com/g/2005'
+    xmlns:gContact='http://schemas.google.com/contact/2008'
+    xmlns:batch='http://schemas.google.com/gdata/batch'>
+  <id>https://www.google.com/m8/feeds/contacts/example.com/base</id>
+  <updated>2008-03-05T12:36:38.836Z</updated>
+  <category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/contact/2008#contact' />
+  <title type='text'>example.com's Contacts</title>
+  <link rel='http://schemas.google.com/g/2005#feed'
+    type='application/atom+xml'
+    href='https://www.google.com/m8/feeds/contacts/example.com/full' />
+  <link rel='http://schemas.google.com/g/2005#post'
+    type='application/atom+xml'
+    href='https://www.google.com/m8/feeds/contacts/example.com/full' />
+  <link rel='http://schemas.google.com/g/2005#batch'
+    type='application/atom+xml'
+    href='https://www.google.com/m8/feeds/contacts/example.com/full/batch' />
+  <link rel='self' type='application/atom+xml'
+    href='https://www.google.com/m8/feeds/contacts/example.com/full?max-results=25' />
+  <author>
+    <name>example.com</name>
+    <email>example.com</email>
+  </author>
+  <generator version='1.0' uri='https://www.google.com/m8/feeds/contacts'>Contacts</generator>
+  <openSearch:totalResults>1</openSearch:totalResults>
+  <openSearch:startIndex>1</openSearch:startIndex>
+  <openSearch:itemsPerPage>25</openSearch:itemsPerPage>
+  <entry>
+    <id>
+      https://www.google.com/m8/feeds/contacts/example.com/base/c9012de
+    </id>
+    <updated>2008-03-05T12:36:38.835Z</updated>
+    <category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/contact/2008#contact' />
+    <title type='text'>Winsome Danger Parker</title>
+    <gd:name>
+      <gd:givenName>Winsome</gd:givenName>
+      <gd:additionalName>Danger</gd:additionalName>
+      <gd:familyName>Parker</gd:familyName>
+      <gd:fullName>Winsome Danger Parker</gd:fullName>
+    </gd:name>
+    <link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*"
+      href="http://google.com/m8/feeds/photos/media/example.com/c9012de"/>
+    <link rel='self' type='application/atom+xml'
+      href='https://www.google.com/m8/feeds/contacts/example.com/full/c9012de' />
+    <link rel='edit' type='application/atom+xml'
+      href='https://www.google.com/m8/feeds/contacts/example.com/full/c9012de/1204720598835000' />
+    <gd:phoneNumber rel='http://schemas.google.com/g/2005#home' primary='true'>
+      (619) 555-1212
+    </gd:phoneNumber>
+  </entry>
+  <entry>
+    <id>
+      https://www.google.com/m8/feeds/contacts/example.com/base/42
+    </id>
+    <updated>2008-03-05T12:36:38.835Z</updated>
+    <category scheme='http://schemas.google.com/g/2005#kind' term='http://schemas.google.com/contact/2008#contact' />
+    <title type='text'>John Parker</title>
+    <gd:name>
+      <gd:fullName>John Parker</gd:fullName>
+    </gd:name>
+    <link rel="http://schemas.google.com/contacts/2008/rel#photo" type="image/*"
+      href="http://google.com/m8/feeds/photos/media/example.com/42"/>
+    <link rel='self' type='application/atom+xml'
+      href='https://www.google.com/m8/feeds/contacts/example.com/full/42' />
+    <link rel='edit' type='application/atom+xml'
+      href='https://www.google.com/m8/feeds/contacts/example.com/full/42/1204720598835000' />
+    <gd:organization>
+      <gd:orgName>Urgetopunt Technologies LLC</gd:orgName>
+      <gd:orgTitle>Owner</gd:orgTitle>
+    </gd:organization>
+    <gd:phoneNumber label="main" primary="true">
+      (619) 555-1234
+    </gd:phoneNumber>
+    <gd:email label="work" address="jparker@urgetopunt.com" primary="true" />
+    <gd:email label="home" address="john.c.parker@gmail.com" />
+    <gd:extendedProperty name="pet" value="dog" />
+  </entry>
+</feed>

@@ -9,6 +9,12 @@ module HelperMethods
   def fixture(file)
     File.open(File.expand_path(File.join(File.dirname(__FILE__), 'fixtures', file)))
   end
+
+  def stub_connect!
+    stub_request(:post, 'https://www.google.com/accounts/ClientLogin').
+      to_return(:body => fixture('successful_authentication.txt'), :status => 200)
+    Gauthic::SharedContact.connect!('admin@example.com', 'secret')
+  end
 end
 
 RSpec.configure do |config|

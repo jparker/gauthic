@@ -24,11 +24,7 @@ describe Gauthic::SharedContact do
   end
 
   describe '.find' do
-    before do
-      stub_request(:post, 'https://www.google.com/accounts/ClientLogin').
-        to_return(:body => fixture('successful_authentication.txt'), :status => 200)
-      Gauthic::SharedContact.connect!('admin@example.com', 'secret')
-    end
+    before { stub_connect! }
 
     describe 'with the id of an existing contact' do
       before do
@@ -54,6 +50,25 @@ describe Gauthic::SharedContact do
         expect { Gauthic::SharedContact.find('https://www.google.com/m8/feeds/contacts/example.com/full/12345') }.
           to raise_error(Gauthic::SharedContact::RecordNotFound, /Contact not found/)
       end
+    end
+  end
+
+  describe '.all' do
+    before do
+      stub_request(:get, 'https://www.google.com/m8/feeds/contacts/example.com/full').
+        to_return(:body => fixture('feed.xml'), :status => 200)
+    end
+
+    it 'returns an array of SharedContacts' do
+      contacts = Gauthic::SharedContact.all
+      contacts.first.should be_kind_of(Gauthic::SharedContact)
+      contacts.last.should be_kind_of(Gauthic::SharedContact)
+    end
+
+    it 'parses individual entries returned in feed' do
+      contacts = Gauthic::SharedContact.all
+      contacts.first.name.fullName.should == 'Winsome Danger Parker'
+      contacts.last.name.fullName.should == 'John Parker'
     end
   end
 
@@ -156,11 +171,7 @@ describe Gauthic::SharedContact do
   end
 
   describe '#save' do
-    before do
-      stub_request(:post, 'https://www.google.com/accounts/ClientLogin').
-        to_return(:body => fixture('successful_authentication.txt'), :status => 200)
-      Gauthic::SharedContact.connect!('admin@example.com', 'secret')
-    end
+    before { stub_connect! }
 
     describe 'when contact is a new record' do
       before do
@@ -214,11 +225,7 @@ describe Gauthic::SharedContact do
   end
 
   describe '#destroy' do
-    before do
-      stub_request(:post, 'https://www.google.com/accounts/ClientLogin').
-        to_return(:body => fixture('successful_authentication.txt'), :status => 200)
-      Gauthic::SharedContact.connect!('admin@example.com', 'secret')
-    end
+    before { stub_connect! }
 
     it "submits DELETE request to contact's edit link" do
       stub_request(:delete, 'https://www.google.com/m8/feeds/contacts/example.com/full/12345/1204224422303000').

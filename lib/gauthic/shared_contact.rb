@@ -1,75 +1,16 @@
+require 'gauthic/shared_contact/abstract_node'
+require 'gauthic/shared_contact/name'
+require 'gauthic/shared_contact/organization'
+require 'gauthic/shared_contact/address'
+require 'gauthic/shared_contact/phone'
+require 'gauthic/shared_contact/email'
+
 module Gauthic
   class SharedContact
     class RecordNotFound < StandardError
     end
 
     class RecordNotSaved < StandardError
-    end
-
-    class AbstractNode
-      def initialize(root, attributes = {})
-        self.root = root
-        attributes.each { |attr, value| send("#{attr}=", value) }
-      end
-
-      class << self
-        private
-        def def_attributes(*attributes)
-          attributes.each do |attribute|
-            def_attribute(attribute)
-          end
-        end
-
-        def def_attribute(attribute)
-          class_eval <<-END, __FILE__, __LINE__
-            def #{attribute}
-              node = root.at_xpath(".//gd:#{attribute}")
-              node.content if node
-            end
-
-            def #{attribute}=(value)
-              node = root.at_xpath(".//gd:#{attribute}")
-              if node.nil?
-                node = Nokogiri::XML::Node.new('#{attribute}', root)
-                node.namespace = root.namespace
-                root << node
-              end
-              node.content = value
-            end
-          END
-        end
-      end
-
-      private
-      attr_accessor :root
-    end
-
-    class Name < AbstractNode
-      def_attributes :namePrefix, :givenName, :additionalName, :familyName, :nameSuffix
-    end
-
-    class Organization < AbstractNode
-      def_attributes :orgName, :orgDepartment, :orgTitle
-    end
-
-    class Address < AbstractNode
-      def_attributes :agent, :housename, :street, :pobox, :neighborhood, :city, :region, :postcode, :country
-      def label()         root['label'] end
-      def label=(value)   root['label'] = value end
-    end
-
-    class Email < AbstractNode
-      def label()         root['label'] end
-      def label=(value)   root['label'] = value end
-      def address()       root['address'] end
-      def address=(value) root['address'] = value end
-    end
-
-    class Phone < AbstractNode
-      def label()         root['label'] end
-      def label=(value)   root['label'] = value end
-      def number()        root.content end
-      def number=(value)  root.content = value end
     end
 
     attr_accessor :document
@@ -147,12 +88,20 @@ module Gauthic
       end
     end
 
+    def self.all
+      result = session.get("https://www.google.com/m8/feeds/contacts/#{session.domain}/full")
+      if Net::HTTPSuccess === result
+        feed = Nokogiri.XML(result.body)
+        feed.xpath('//xmlns:feed/xmlns:entry').map { |node| new(node) }
+      end
+    end
+
     def session
       self.class.session
     end
 
     def name
-      node = document.at_xpath('//gd:name')
+      node = document.at_xpath('.//gd:name')
       if node.nil?
         node = Nokogiri::XML::Node.new('name', document)
         node.namespace = namespace('gd')
@@ -162,12 +111,12 @@ module Gauthic
     end
 
     def name=(parts)
-      document.xpath('//gd:name').remove
+      document.xpath('.//gd:name').remove
       parts.each { |attr, value| name.send("#{attr}=", value) }
     end
 
     def organization
-      node = document.at_xpath('//gd:organization')
+      node = document.at_xpath('.//gd:organization')
       if node.nil?
         node = Nokogiri::XML::Node.new('organization', document)
         node.namespace = namespace('gd')
@@ -177,16 +126,16 @@ module Gauthic
     end
 
     def organization=(parts)
-      document.xpath('//gd:organization').remove
+      document.xpath('.//gd:organization').remove
       parts.each { |attr, value| organization.send("#{attr}=", value) }
     end
 
     def addresses
-      document.xpath('//gd:structuredPostalAddress').map { |node| Address.new(node) }
+      document.xpath('.//gd:structuredPostalAddress').map { |node| Address.new(node) }
     end
 
     def addresses=(addresses)
-      document.xpath('//gd:structuredPostalAddress').remove
+      document.xpath('.//gd:structuredPostalAddress').remove
       addresses.map do |parts|
         node = Nokogiri::XML::Node.new('structuredPostalAddress', document)
         node.namespace = namespace('gd')
@@ -196,11 +145,11 @@ module Gauthic
     end
 
     def emails
-      document.xpath('//gd:email').map { |node| Email.new(node) }
+      document.xpath('.//gd:email').map { |node| Email.new(node) }
     end
 
     def emails=(addresses)
-      document.xpath('//gd:email').remove
+      document.xpath('.//gd:email').remove
       addresses.map do |parts|
         node = Nokogiri::XML::Node.new('email', document)
         node.namespace = namespace('gd')
@@ -210,11 +159,11 @@ module Gauthic
     end
 
     def phones
-      document.xpath('//gd:phoneNumber').map { |node| Phone.new(node) }
+      document.xpath('.//gd:phoneNumber').map { |node| Phone.new(node) }
     end
 
     def phones=(numbers)
-      document.xpath('//gd:phoneNumber').remove
+      document.xpath('.//gd:phoneNumber').remove
       numbers.map do |parts|
         node = Nokogiri::XML::Node.new('phoneNumber', document)
         node.namespace = namespace('gd')
@@ -263,8 +212,12 @@ module Gauthic
     end
 
     def xml=(xml)
-      self.document = Nokogiri.XML(xml)
-      self.document = default_document if document.root.nil?
+      if xml.respond_to?(:document)
+        self.document = xml
+      else
+        self.document = Nokogiri.XML(xml)
+        self.document = default_document if document.root.nil?
+      end
     end
   end
 end
