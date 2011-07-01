@@ -1,0 +1,8 @@
+* Convert from ClientLogin to "two-legged" OAuth.
+  http://www.google.com/support/a/bin/answer.py?answer=61017&hl=en
+
+* Support for additional attributes such as IM handles.
+
+* Support for searching for contacts by attribute.
+
+* Support for batch operations.

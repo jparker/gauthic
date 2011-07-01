@@ -14,6 +14,8 @@ more about Google Data authorization here:
 
 http://code.google.com/apis/gdata/docs/auth/overview.html
 
+(OAuth UPDATE: http://www.google.com/support/a/bin/answer.py?answer=61017&hl=en)
+
 === SHARED CONTACT API USAGE ===
 
 Before performing any actions, you must connect to the GData service to activate

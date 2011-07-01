@@ -27,7 +27,7 @@ module Gauthic
     end
 
     def id
-      tag = document.at_xpath('//xmlns:link[@rel="self"]')
+      tag = document.at_xpath('.//xmlns:link[@rel="self"]')
       tag.attribute('href').value unless tag.nil?
     end
 
@@ -51,7 +51,7 @@ module Gauthic
     end
 
     def destroy
-      url = document.at_xpath('//xmlns:link[@rel="edit"]').attribute('href').value
+      url = document.at_xpath('.//xmlns:link[@rel="edit"]').attribute('href').value
       result = session.delete(url, :headers => {'If-Match' => '*'})
       if Net::HTTPSuccess === result
         return true
@@ -88,11 +88,15 @@ module Gauthic
       end
     end
 
+    # FIXME: This isn't quite working. It returns SharedContacts with documents
+    # that are Elements rather than full-fledged Documents.
     def self.all
       result = session.get("https://www.google.com/m8/feeds/contacts/#{session.domain}/full")
       if Net::HTTPSuccess === result
         feed = Nokogiri.XML(result.body)
         feed.xpath('//xmlns:feed/xmlns:entry').map { |node| new(node) }
+      else
+        raise Gauthic::SharedContact::RecordNotFound, result.body
       end
     end
 
@@ -201,7 +205,7 @@ module Gauthic
     end
 
     def update_existing_record(debug=false)
-      url = document.at_xpath('//xmlns:link[@rel="edit"]').attribute('href').value
+      url = document.at_xpath('.//xmlns:link[@rel="edit"]').attribute('href').value
       result = session.put(url, :headers => {'Content-Type' => 'application/atom+xml'}, :body => xml)
       if Net::HTTPSuccess === result
         self.xml = result.body
