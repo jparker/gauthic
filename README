@@ -48,4 +48,4 @@ Gauthic::SharedContact exposes an interface similar to that of ActiveRecord.
 
 === COMPATIBILITY ===
 
-This library has been developed and tested against Ruby 1.9.2p180 and Ruby Enterprise Edition 1.8.7-2011.03.
+This library has been developed and tested against Ruby 1.9.2, Ruby Enterprise Edition 1.8.7 and Rubinius.
