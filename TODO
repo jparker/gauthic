@@ -6,3 +6,8 @@
 * Support for searching for contacts by attribute.
 
 * Support for batch operations.
+
+* Support deletion of attributes:
+	contact.name.delete(:additionalName)
+	-or-
+	contact.name.additionalName.remove

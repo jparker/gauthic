@@ -9,5 +9,6 @@ task :specs => :spec
 
 desc 'Start IRB with environment preloaded'
 task :console do
-  exec 'irb', "-I#{File.join(File.dirname(__FILE__), 'lib')}", '-rgauthic'
+  $stderr.puts "DEPRECATION WARNING: console task is obsolete: use 'bundle console' instead"
+  exec 'bundle', 'console'
 end
